@@ -1,0 +1,22 @@
+spring:
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/productdb
+#    username: admin
+#    password: admin
+  data:
+    cassandra:
+      keyspaceName: userdb
+      contactPoints: localhost:9042
+      local-datacenter: datacenter1
+      # When running the application for the first time against a new Cassandra instance, this should be CREATE
+      # More context on why this is the case can be found at this SO answer: https://stackoverflow.com/a/69203059
+      # This bug is still there since 3.x versions :-(
+      schemaAction: CREATE_IF_NOT_EXIST
+  kafka:
+    bootstrap-servers:
+      - localhost:9091
+    template:
+      default-topic: user-service-event
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
