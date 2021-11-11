@@ -1,8 +1,13 @@
 spring:
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/productdb
-#    username: admin
-#    password: admin
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/admin
+    username: admin
+    password: password
   data:
     cassandra:
       keyspaceName: userdb
@@ -13,8 +18,8 @@ spring:
       # This bug is still there since 3.x versions :-(
       schemaAction: CREATE_IF_NOT_EXIST
   kafka:
-    bootstrap-servers:
-      - localhost:9091
+    # Bootstrap-servers have to be a comma separated list of host:port combinations
+    bootstrap-servers: localhost:9092
     template:
       default-topic: user-service-event
     producer:

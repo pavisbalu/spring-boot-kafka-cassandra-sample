@@ -1,7 +1,7 @@
 package com.eventdriven.userservice.repository.jpa;
 
 import com.eventdriven.userservice.entity.Users;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UsersFromPostgres extends Repository<Users, Long> {
+public interface UsersFromPostgres extends JpaRepository<Users, Long> {
 }

@@ -2,7 +2,7 @@ package com.eventdriven.userservice.service.impl;
 
 import com.eventdriven.userservice.dto.UserDto;
 import com.eventdriven.userservice.entity.Users;
-import com.eventdriven.userservice.repository.cassandra.UsersFromCassandra;
+import com.eventdriven.userservice.repository.jpa.UsersFromPostgres;
 import com.eventdriven.userservice.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -21,14 +21,14 @@ public class UserServiceImpl implements UserService {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Autowired
-    private UsersFromCassandra usersFromCassandra;
+    private UsersFromPostgres usersFromPostgres;
 
     @Autowired
     private KafkaTemplate<Long, String> kafkaTemplate;
 
     @Override
     public List<Users> allUsers() {
-        return this.usersFromCassandra.findAll();
+        return this.usersFromPostgres.findAll();
     }
 
     @Override
@@ -39,14 +39,14 @@ public class UserServiceImpl implements UserService {
         user.setFirstname(userDto.getFirstname());
         user.setLastname(userDto.getLastname());
         user.setEmail(userDto.getEmail());
-//        this.raiseEvent(userDto);
-        return this.usersFromCassandra.save(user).getId();
+        this.raiseEvent(userDto);
+        return this.usersFromPostgres.save(user).getId();
     }
 
     @Override
     @Transactional
     public void updateUser(UserDto userDto) {
-        this.usersFromCassandra.findById(userDto.getId())
+        this.usersFromPostgres.findById(userDto.getId())
                 .ifPresent(user -> {
                     user.setFirstname(userDto.getFirstname());
                     user.setLastname(userDto.getLastname());
