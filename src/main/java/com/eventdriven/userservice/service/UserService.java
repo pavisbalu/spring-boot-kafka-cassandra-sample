@@ -10,5 +10,6 @@ public interface UserService {
     List<Users> allUsers();
 
     Long createUser(UserDto userDto);
+
     void updateUser(UserDto userDto);
 }
