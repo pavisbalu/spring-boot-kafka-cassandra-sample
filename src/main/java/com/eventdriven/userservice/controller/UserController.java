@@ -17,7 +17,7 @@ public class UserController {
 
     @PostMapping("/create")
     public Long createUser(@RequestBody UserDto userDto) {
-        return this.userService.createUser(userDto);
+        return this.userService.createUserInPostgres(userDto);
 
     }
 
@@ -26,8 +26,13 @@ public class UserController {
         this.userService.updateUser(userDto);
     }
 
-    @GetMapping("/")
-    public List<Users> allUsers() {
-        return this.userService.allUsers();
+    @GetMapping("/postgres")
+    public List<Users> allUsersFromPostgres() {
+        return this.userService.allUsersFromPostgres();
+    }
+
+    @GetMapping("/cassandra")
+    public List<Users> allUsersFromCassandra() {
+        return this.userService.allUsersFromCassandra();
     }
 }
