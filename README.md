@@ -28,3 +28,29 @@ $ docker-compose down
 ```
 
 *NOTE*: The above commands have to be executed from the root folder of this project.
+
+Start the application `UserServiceApplication` from within your IDE and use Postman to make a POST request
+to `/user-service/create`. If you've `cURL` installed on your machine you can also issue a request like below for adding
+new users.
+
+```
+curl --location --request POST 'localhost:8080/user-service/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "id": 4,
+    "firstname": "Pavithra",
+    "lastname": "B",
+    "email": "pavithra.b@brillio.com"
+}'
+```
+
+This should return you the ID back from Postgres. You can now check the following endpoints to see if the data is
+inserted properly:
+
+```
+# Check data from Cassandra
+curl http://localhost:8080/user-service/cassandra
+
+# Check data from Postgres
+curl http://localhost:8080/user-service/postgres
+```
