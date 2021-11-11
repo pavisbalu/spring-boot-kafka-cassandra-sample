@@ -6,7 +6,6 @@ import com.eventdriven.userservice.repository.cassandra.UsersFromCassandra;
 import com.eventdriven.userservice.repository.jpa.UsersFromPostgres;
 import com.eventdriven.userservice.service.UserService;
 import com.eventdriven.userservice.util.JsonSerDe;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +41,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Long createUserInPostgres(UserDto userDto) {
-        Users user = new Users();
-        user.setId(userDto.getId());
-        user.setFirstname(userDto.getFirstname());
-        user.setLastname(userDto.getLastname());
-        user.setEmail(userDto.getEmail());
+        Users user = parseUser(userDto);
         this.raiseEvent(userDto);
         return this.usersFromPostgres.save(user).getId();
     }
@@ -54,11 +49,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Long createUserInCassandra(UserDto userDto) {
-        Users user = new Users();
-        user.setId(userDto.getId());
-        user.setFirstname(userDto.getFirstname());
-        user.setLastname(userDto.getLastname());
-        user.setEmail(userDto.getEmail());
+        Users user = parseUser(userDto);
         return this.usersFromCassandra.save(user).getId();
     }
 
@@ -77,5 +68,14 @@ public class UserServiceImpl implements UserService {
     private void raiseEvent(UserDto dto) {
         String value = JsonSerDe.toJson(dto);
         this.kafkaTemplate.sendDefault(dto.getId(), value);
+    }
+
+    private Users parseUser(UserDto userDto) {
+        Users user = new Users();
+        user.setId(userDto.getId());
+        user.setFirstname(userDto.getFirstname());
+        user.setLastname(userDto.getLastname());
+        user.setEmail(userDto.getEmail());
+        return user;
     }
 }

@@ -16,7 +16,7 @@ public class PushFromKafkaToCassandra {
     @Autowired
     private UserService userService;
 
-    @KafkaListener(groupId = "test", topics = "#{'${spring.kafka.template.default-topic}'.split(',')}",
+    @KafkaListener(groupId = "test-dev", topics = "#{'${spring.kafka.template.default-topic}'.split(',')}",
             properties = "${spring.kafka.consumer.props}")
     public void onMessage(ConsumerRecord<Integer, String> consumerRecord) {
         String recordAsJson = consumerRecord.value();
