@@ -23,9 +23,9 @@ spring:
     template:
       default-topic: user-service-event
     producer:
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
       props: |
-        key.deserializer: org.apache.kafka.common.serialization.LongDeserializer
+        key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
         value.deserializer: org.apache.kafka.common.serialization.StringDeserializer

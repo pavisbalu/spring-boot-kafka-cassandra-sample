@@ -54,3 +54,5 @@ curl http://localhost:8080/user-service/cassandra
 # Check data from Postgres
 curl http://localhost:8080/user-service/postgres
 ```
+
+Reference implementation of Event Sourcing as described at https://www.baeldung.com/cqrs-event-sourcing-java.

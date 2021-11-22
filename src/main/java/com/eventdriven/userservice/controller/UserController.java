@@ -23,7 +23,7 @@ public class UserController {
 
     @PutMapping("/update")
     public void updateUser(@RequestBody UserDto userDto) {
-        this.userService.updateUser(userDto);
+        this.userService.updateUserInPostgres(userDto);
     }
 
     @GetMapping("/postgres")

@@ -14,8 +14,11 @@ public interface UserService {
 
     Long createUserInPostgres(UserDto userDto);
 
-    @Transactional
     Long createUserInCassandra(UserDto userDto);
 
-    void updateUser(UserDto userDto);
+    void updateUserInPostgres(UserDto userDto);
+
+    void updateUserInCassandra(UserDto userDto);
+
+    void deleteUserFromCassandra(Long userId);
 }

@@ -2,12 +2,15 @@ package com.eventdriven.userservice.service.impl;
 
 import com.eventdriven.userservice.dto.UserDto;
 import com.eventdriven.userservice.entity.Users;
+import com.eventdriven.userservice.events.CreateUserEvent;
+import com.eventdriven.userservice.events.DeleteUserEvent;
+import com.eventdriven.userservice.events.Event;
+import com.eventdriven.userservice.events.UpdateUserEvent;
 import com.eventdriven.userservice.repository.cassandra.UsersFromCassandra;
 import com.eventdriven.userservice.repository.jpa.UsersFromPostgres;
 import com.eventdriven.userservice.service.UserService;
 import com.eventdriven.userservice.util.JsonSerDe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -16,8 +19,8 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
-    private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UsersFromPostgres usersFromPostgres;
@@ -26,7 +29,7 @@ public class UserServiceImpl implements UserService {
     private UsersFromCassandra usersFromCassandra;
 
     @Autowired
-    private KafkaTemplate<Long, String> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     public List<Users> allUsersFromPostgres() {
@@ -42,8 +45,15 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Long createUserInPostgres(UserDto userDto) {
         Users user = parseUser(userDto);
-        this.raiseEvent(userDto);
-        return this.usersFromPostgres.save(user).getId();
+        this.raiseEvent(new CreateUserEvent(user.getId(), user.getFirstname(), user.getLastname(), user.getEmail()));
+        try {
+            Users savedUser = this.usersFromPostgres.save(user);
+            return savedUser.getId();
+        } catch (Exception e) {
+            this.raiseEvent(new DeleteUserEvent(user.getId()));
+            log.error(e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -55,19 +65,37 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateUser(UserDto userDto) {
+    public void updateUserInPostgres(UserDto userDto) {
         this.usersFromPostgres.findById(userDto.getId())
+                .ifPresent(updatedUser -> {
+                    updatedUser.setFirstname(userDto.getFirstname());
+                    updatedUser.setLastname(userDto.getLastname());
+                    updatedUser.setEmail(userDto.getEmail());
+                    this.usersFromPostgres.save(updatedUser);
+                    this.raiseEvent(new UpdateUserEvent(updatedUser.getId(), updatedUser.getFirstname(), updatedUser.getLastname(), updatedUser.getEmail()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public void updateUserInCassandra(UserDto userDto) {
+        this.usersFromCassandra.findById(userDto.getId())
                 .ifPresent(user -> {
                     user.setFirstname(userDto.getFirstname());
                     user.setLastname(userDto.getLastname());
                     user.setEmail(userDto.getEmail());
-                    this.raiseEvent(userDto);
                 });
     }
 
-    private void raiseEvent(UserDto dto) {
-        String value = JsonSerDe.toJson(dto);
-        this.kafkaTemplate.sendDefault(dto.getId(), value);
+    @Override
+    @Transactional
+    public void deleteUserFromCassandra(Long userId) {
+        this.usersFromCassandra.deleteById(userId);
+    }
+
+    private void raiseEvent(Event event) {
+        String value = JsonSerDe.toJson(event);
+        this.kafkaTemplate.sendDefault(event.getId().toString(), value);
     }
 
     private Users parseUser(UserDto userDto) {
